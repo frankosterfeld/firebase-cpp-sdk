@@ -234,7 +234,6 @@ LibraryRegistry* LibraryRegistry::library_registry_ = nullptr;
 
 App* AddApp(App* app, bool is_default,
             std::map<std::string, InitResult>* results) {
-  bool created_first_app = false;
   assert(app);
   App* existing_app = FindAppByName(app->name());
   FIREBASE_ASSERT_RETURN(nullptr, !existing_app);
@@ -242,11 +241,13 @@ App* AddApp(App* app, bool is_default,
   if (is_default) {
     assert(!g_default_app);
     g_default_app = app;
-    created_first_app = true;
   }
   UniquePtr<AppData> app_data(new AppData);
   app_data->app = app;
   app_data->cleanup_notifier.RegisterOwner(app);
+
+  const bool created_first_app = g_apps == nullptr;
+
   if (!g_apps) g_apps = new std::map<std::string, UniquePtr<AppData>>();
   (*g_apps)[std::string(app->name())] = app_data;
   // Create a cleanup notifier for the app.
